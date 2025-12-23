@@ -169,27 +169,31 @@ class RecorderService : Service() {
             
             // Setup Audio Encoder & Recorder
             var audioEnabled = false
+            Log.d(TAG, "Audio Source Setting: ${settings.audioSource}")
+            
             if (settings.audioSource != AudioSource.NONE) {
+                Log.d(TAG, "Initializing audio encoder and recorder...")
                 audioEncoder = AudioEncoder() // Default settings
                 audioEncoder?.prepare()
                 
                 audioRecorder = AudioRecorder()
                 
-                // Determine source
-                val useMic = settings.audioSource == AudioSource.MICROPHONE || settings.audioSource == AudioSource.BOTH
-                
+                // Start audio recording with the specified source
                 val success = audioRecorder?.start(
                     screenCaptureManager.getMediaProjection(), 
-                    useMic
+                    settings.audioSource
                 ) ?: false
                 
                 if (success) {
                     audioEnabled = true
+                    Log.d(TAG, "✅ Audio recording enabled: ${settings.audioSource}")
                 } else {
-                    Log.e(TAG, "Failed to start audio recorder")
+                    Log.e(TAG, "❌ Failed to start audio recorder for source: ${settings.audioSource}")
                     audioEncoder?.release()
                     audioEncoder = null
                 }
+            } else {
+                Log.w(TAG, "⚠️ Audio source is NONE - no audio will be recorded")
             }
             
             // Initialize muxer
@@ -275,8 +279,9 @@ class RecorderService : Service() {
         var audioTrackAdded = false
         val bufferSize = audioRecorder?.getBufferSize() ?: 4096
         val audioBuffer = ByteArray(bufferSize)
+        var readCount = 0
         
-        Log.d(TAG, "Starting audio loop")
+        Log.d(TAG, "🎤 Starting audio loop with buffer size: $bufferSize")
         
         while (currentCoroutineContext().isActive && _recordingState.value is RecordingState.Recording) {
             try {
@@ -284,6 +289,11 @@ class RecorderService : Service() {
                 val readResult = audioRecorder?.read(audioBuffer, bufferSize) ?: -1
                 
                 if (readResult > 0) {
+                    readCount++
+                    if (readCount % 100 == 0) {
+                        Log.d(TAG, "🎤 Audio read count: $readCount, bytes: $readResult")
+                    }
+                    
                     val timestampUs = (System.currentTimeMillis() - startTime - pausedDuration) * 1000
                     
                     // 2. Encode Audio
@@ -299,6 +309,8 @@ class RecorderService : Service() {
                                 if (output.buffer != null && output.info.size > 0) {
                                     if (audioTrackAdded) {
                                         muxer?.writeAudioSample(output.buffer, output.info)
+                                    } else {
+                                        Log.w(TAG, "⚠️ Audio data available but track not added yet")
                                     }
                                 }
                                 audioEncoder?.releaseOutputBuffer(output.index)
@@ -308,7 +320,7 @@ class RecorderService : Service() {
                                 if (format != null && !audioTrackAdded) {
                                     muxer?.addAudioTrack(format)
                                     audioTrackAdded = true
-                                    Log.d(TAG, "Audio track added")
+                                    Log.d(TAG, "✅ Audio track added to muxer")
                                 }
                             }
                             is AudioEncoder.Output.TryAgain -> {
@@ -317,6 +329,9 @@ class RecorderService : Service() {
                         }
                     }
                 } else {
+                    if (readCount == 0 && readResult == -1) {
+                        Log.e(TAG, "❌ Audio recorder returning -1 (no data)")
+                    }
                     delay(5)
                 }
             } catch (e: Exception) {
@@ -324,6 +339,8 @@ class RecorderService : Service() {
                 break
             }
         }
+        
+        Log.d(TAG, "🎤 Audio loop ended. Total reads: $readCount, Track added: $audioTrackAdded")
     }
     
     private fun pauseRecording() {
