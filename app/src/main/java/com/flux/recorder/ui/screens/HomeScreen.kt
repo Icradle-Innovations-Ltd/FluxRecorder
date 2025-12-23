@@ -26,8 +26,7 @@ import com.flux.recorder.data.RecordingState
 import com.flux.recorder.service.RecorderService
 import com.flux.recorder.ui.theme.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -41,9 +40,32 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     
-    // Permission state for audio recording
-    val audioPermissionState = rememberPermissionState(
-        android.Manifest.permission.RECORD_AUDIO
+    // Build list of required permissions based on Android version and settings
+    val requiredPermissions = buildList {
+        add(android.Manifest.permission.RECORD_AUDIO)
+        
+        // Camera permission if facecam is enabled
+        if (settings.enableFacecam) {
+            add(android.Manifest.permission.CAMERA)
+        }
+        
+        // Notification permission for Android 13+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            add(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+        
+        // Storage permissions based on Android version
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            add(android.Manifest.permission.READ_MEDIA_VIDEO)
+        } else if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.P) {
+            add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+    }
+    
+    // Multi-permission state
+    val multiplePermissionsState = rememberMultiplePermissionsState(
+        permissions = requiredPermissions
     )
     
     // MediaProjection permission launcher
@@ -161,16 +183,16 @@ fun HomeScreen(
                 isRecording = recordingState is RecordingState.Recording,
                 onClick = {
                     if (recordingState is RecordingState.Idle) {
-                        // Check audio permission first
-                        if (audioPermissionState.status.isGranted) {
-                            // Request MediaProjection permission
+                        // Check if all permissions are granted
+                        if (multiplePermissionsState.allPermissionsGranted) {
+                            // All permissions granted, request MediaProjection
                             val intent = (context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) 
                                 as android.media.projection.MediaProjectionManager)
                                 .createScreenCaptureIntent()
                             mediaProjectionLauncher.launch(intent)
                         } else {
-                            // Request audio permission
-                            audioPermissionState.launchPermissionRequest()
+                            // Request missing permissions
+                            multiplePermissionsState.launchMultiplePermissionRequest()
                         }
                     } else {
                         onStopRecording()

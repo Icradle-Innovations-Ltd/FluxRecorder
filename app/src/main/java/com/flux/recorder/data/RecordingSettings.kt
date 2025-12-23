@@ -39,8 +39,8 @@ enum class AudioSource(val displayName: String) {
  */
 @Parcelize
 data class RecordingSettings(
-    val videoQuality: VideoQuality = VideoQuality.QUALITY_1080P,
-    val frameRate: FrameRate = FrameRate.FPS_60,
+    val videoQuality: VideoQuality = VideoQuality.QUALITY_720P,
+    val frameRate: FrameRate = FrameRate.FPS_30,
     val audioSource: AudioSource = AudioSource.BOTH,
     val enableFacecam: Boolean = false,
     val enableShakeToStop: Boolean = true,

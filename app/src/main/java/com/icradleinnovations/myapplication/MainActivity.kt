@@ -58,11 +58,41 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         
         setContent {
+            // Make recorderService observable
+            var service by remember { mutableStateOf<RecorderService?>(null) }
+            
+            // Update service when connection changes
+            DisposableEffect(Unit) {
+                val connection = object : ServiceConnection {
+                    override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+                        val serviceBinder = binder as RecorderService.RecorderBinder
+                        service = serviceBinder.getService()
+                        serviceBound = true
+                    }
+                    
+                    override fun onServiceDisconnected(name: ComponentName?) {
+                        service = null
+                        serviceBound = false
+                    }
+                }
+                
+                onDispose {
+                    if (serviceBound) {
+                        unbindService(connection)
+                        serviceBound = false
+                    }
+                }
+            }
+            
             FluxRecorderTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = VoidBlack
                 ) {
+                    // Collect recording state reactively
+                    val recordingState by service?.recordingState?.collectAsState() 
+                        ?: remember { mutableStateOf(RecordingState.Idle) }
+                    
                     FluxRecorderApp(
                         preferencesManager = preferencesManager,
                         fileManager = fileManager,
@@ -72,8 +102,7 @@ class MainActivity : ComponentActivity() {
                         onStopRecording = {
                             stopRecordingService()
                         },
-                        recordingState = recorderService?.recordingState?.collectAsState()?.value 
-                            ?: RecordingState.Idle
+                        recordingState = recordingState
                     )
                 }
             }

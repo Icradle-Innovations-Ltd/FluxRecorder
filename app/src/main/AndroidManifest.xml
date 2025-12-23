@@ -21,7 +21,7 @@
     <uses-feature android:name="android.hardware.camera.front" android:required="false" />
 
     <application
-        android:name=".FluxRecorderApplication"
+        android:name="com.flux.recorder.FluxRecorderApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -34,7 +34,7 @@
         tools:targetApi="31">
         
         <activity
-            android:name=".MainActivity"
+            android:name="com.flux.recorder.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.FluxRecorder"
@@ -48,20 +48,20 @@
         
         <!-- Recording Service -->
         <service
-            android:name=".service.RecorderService"
+            android:name="com.flux.recorder.service.RecorderService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
         
         <!-- Floating Control Service -->
         <service
-            android:name=".service.FloatingControlService"
+            android:name="com.flux.recorder.service.FloatingControlService"
             android:enabled="true"
             android:exported="false" />
         
         <!-- Quick Settings Tile -->
         <service
-            android:name=".service.QuickTileService"
+            android:name="com.flux.recorder.service.QuickTileService"
             android:enabled="true"
             android:exported="true"
             android:icon="@drawable/ic_record"
