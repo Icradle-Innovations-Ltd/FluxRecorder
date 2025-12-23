@@ -103,7 +103,10 @@ class MainActivity : ComponentActivity() {
                         onStopRecording = {
                             stopRecordingService()
                         },
-                        recordingState = recordingState
+                        recordingState = recordingState,
+                        onPlayRecording = { file ->
+                            playRecording(file)
+                        }
                     )
                 }
             }
@@ -128,6 +131,24 @@ class MainActivity : ComponentActivity() {
         startService(intent)
     }
     
+    private fun playRecording(file: File) {
+        try {
+            val uri = FileProvider.getUriForFile(
+                this,
+                "${applicationId}.fileprovider",
+                file
+            )
+            
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "video/mp4")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+    
     override fun onDestroy() {
         super.onDestroy()
     }
@@ -139,7 +160,8 @@ fun FluxRecorderApp(
     fileManager: FileManager,
     onStartRecording: (Int, Intent, RecordingSettings) -> Unit,
     onStopRecording: () -> Unit,
-    recordingState: RecordingState
+    recordingState: RecordingState,
+    onPlayRecording: (File) -> Unit
 ) {
     var currentScreen by remember { mutableStateOf("home") }
     var settings by remember { mutableStateOf(preferencesManager.getRecordingSettings()) }
@@ -181,7 +203,8 @@ fun FluxRecorderApp(
                 },
                 onShareRecording = { file ->
                     // TODO: Implement share functionality
-                }
+                },
+                onPlayRecording = onPlayRecording
             )
         }
     }

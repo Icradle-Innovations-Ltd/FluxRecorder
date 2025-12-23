@@ -22,7 +22,8 @@ fun RecordingsScreen(
     recordings: List<File>,
     onNavigateBack: () -> Unit,
     onDeleteRecording: (File) -> Unit,
-    onShareRecording: (File) -> Unit
+    onShareRecording: (File) -> Unit,
+    onPlayRecording: (File) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -72,7 +73,8 @@ fun RecordingsScreen(
                     RecordingCard(
                         file = recording,
                         onDelete = { onDeleteRecording(recording) },
-                        onShare = { onShareRecording(recording) }
+                        onShare = { onShareRecording(recording) },
+                        onPlay = { onPlayRecording(recording) }
                     )
                 }
             }
@@ -84,9 +86,11 @@ fun RecordingsScreen(
 fun RecordingCard(
     file: File,
     onDelete: () -> Unit,
-    onShare: () -> Unit
+    onShare: () -> Unit,
+    onPlay: () -> Unit
 ) {
     Card(
+        onClick = onPlay,
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = SurfaceBlack

@@ -4,12 +4,15 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
+import com.flux.recorder.core.camera.CameraOverlay
 
 /**
  * Service for floating control overlay
  * TODO: Implement WindowManager overlay with pause/stop/draw controls
  */
 class FloatingControlService : Service() {
+    
+    private var cameraOverlay: CameraOverlay? = null
     
     companion object {
         private const val TAG = "FloatingControlService"
@@ -18,11 +21,12 @@ class FloatingControlService : Service() {
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "FloatingControlService created")
-        // TODO: Create floating overlay window
+        cameraOverlay = CameraOverlay(this)
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // TODO: Show/hide floating controls
+        Log.d(TAG, "FloatingControlService started")
+        cameraOverlay?.show()
         return START_NOT_STICKY
     }
     
@@ -33,6 +37,7 @@ class FloatingControlService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "FloatingControlService destroyed")
-        // TODO: Remove floating overlay
+        cameraOverlay?.stop()
+        cameraOverlay = null
     }
 }

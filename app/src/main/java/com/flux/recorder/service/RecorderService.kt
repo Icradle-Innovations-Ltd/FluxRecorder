@@ -154,6 +154,12 @@ class RecorderService : Service() {
             
             Log.d(TAG, "Recording started")
             
+            // Start facecam if enabled
+            if (settings.enableFacecam) {
+                val facecamIntent = Intent(this, FloatingControlService::class.java)
+                startService(facecamIntent)
+            }
+            
         } catch (e: Exception) {
             Log.e(TAG, "Error starting recording", e)
             _recordingState.value = RecordingState.Error(e.message ?: "Unknown error")
@@ -256,6 +262,48 @@ class RecorderService : Service() {
         videoEncoder = null
         
         screenCaptureManager.stop()
+        
+        // Make sure file is visible in gallery
+        outputFile?.let { file ->
+            // First, scan the original private file (just in case)
+            android.media.MediaScannerConnection.scanFile(
+                this,
+                arrayOf(file.absolutePath),
+                arrayOf("video/mp4"),
+                null
+            )
+            
+            // Now copy to public "Movies/FluxRecorder" directory
+            val publicFile = fileManager.copyToPublicGallery(file)
+            
+            // If we got a public file (legacy storage), scan that too
+            if (publicFile != null) {
+                android.media.MediaScannerConnection.scanFile(
+                    this,
+                    arrayOf(publicFile.absolutePath),
+                    arrayOf("video/mp4"),
+                    null
+                )
+                Log.d(TAG, "Copied and scanned public file: ${publicFile.absolutePath}")
+            } else {
+                Log.d(TAG, "Copied to MediaStore (Scoped Storage)")
+            }
+            
+            // Delete the private file to avoid duplicates
+            try {
+                if (file.exists()) {
+                    val deleted = file.delete()
+                    Log.d(TAG, "Deleted private original file: $deleted")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to delete private file", e)
+            }
+        }
+        
+        // Stop facecam if running
+        // TODO: Implement actual floating control stop logic properly
+        val facecamIntent = Intent(this, FloatingControlService::class.java)
+        stopService(facecamIntent)
         
         // Update state
         _recordingState.value = RecordingState.Idle
