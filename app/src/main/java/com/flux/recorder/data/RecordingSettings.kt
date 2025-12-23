@@ -7,6 +7,9 @@ import kotlinx.parcelize.Parcelize
  * Video quality/resolution options
  */
 enum class VideoQuality(val width: Int, val height: Int, val displayName: String) {
+    QUALITY_360P(640, 360, "360p (Low)"),
+    QUALITY_480P(854, 480, "480p (SD)"),
+    QUALITY_720P(1280, 720, "720p (HD)"),
     QUALITY_1080P(1920, 1080, "1080p (Full HD)"),
     QUALITY_2K(2560, 1440, "2K (1440p)"),
     QUALITY_4K(3840, 2160, "4K (2160p)")

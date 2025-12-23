@@ -25,8 +25,11 @@ import com.flux.recorder.data.RecordingSettings
 import com.flux.recorder.data.RecordingState
 import com.flux.recorder.service.RecorderService
 import com.flux.recorder.ui.theme.*
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(
     recordingState: RecordingState,
@@ -37,6 +40,11 @@ fun HomeScreen(
     onNavigateToRecordings: () -> Unit
 ) {
     val context = LocalContext.current
+    
+    // Permission state for audio recording
+    val audioPermissionState = rememberPermissionState(
+        android.Manifest.permission.RECORD_AUDIO
+    )
     
     // MediaProjection permission launcher
     val mediaProjectionLauncher = rememberLauncherForActivityResult(
@@ -153,11 +161,17 @@ fun HomeScreen(
                 isRecording = recordingState is RecordingState.Recording,
                 onClick = {
                     if (recordingState is RecordingState.Idle) {
-                        // Request MediaProjection permission
-                        val intent = (context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) 
-                            as android.media.projection.MediaProjectionManager)
-                            .createScreenCaptureIntent()
-                        mediaProjectionLauncher.launch(intent)
+                        // Check audio permission first
+                        if (audioPermissionState.status.isGranted) {
+                            // Request MediaProjection permission
+                            val intent = (context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) 
+                                as android.media.projection.MediaProjectionManager)
+                                .createScreenCaptureIntent()
+                            mediaProjectionLauncher.launch(intent)
+                        } else {
+                            // Request audio permission
+                            audioPermissionState.launchPermissionRequest()
+                        }
                     } else {
                         onStopRecording()
                     }
