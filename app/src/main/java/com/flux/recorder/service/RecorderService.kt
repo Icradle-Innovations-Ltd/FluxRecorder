@@ -5,9 +5,12 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
+import com.flux.recorder.core.audio.AudioRecorder
+import com.flux.recorder.core.codec.AudioEncoder
 import com.flux.recorder.core.codec.MediaMuxerWrapper
 import com.flux.recorder.core.codec.VideoEncoder
 import com.flux.recorder.core.projection.ScreenCaptureManager
+import com.flux.recorder.data.AudioSource
 import com.flux.recorder.data.RecordingSettings
 import com.flux.recorder.data.RecordingState
 import com.flux.recorder.utils.FileManager
@@ -31,9 +34,13 @@ class RecorderService : Service() {
     private lateinit var screenCaptureManager: ScreenCaptureManager
     
     private var videoEncoder: VideoEncoder? = null
+    private var audioEncoder: AudioEncoder? = null
+    private var audioRecorder: AudioRecorder? = null
+    
     private var muxer: MediaMuxerWrapper? = null
     private var outputFile: File? = null
     private var recordingJob: Job? = null
+    private var audioJob: Job? = null
     
     private val _recordingState = MutableStateFlow<RecordingState>(RecordingState.Idle)
     val recordingState: StateFlow<RecordingState> = _recordingState.asStateFlow()
@@ -109,11 +116,32 @@ class RecorderService : Service() {
             // Create output file
             outputFile = fileManager.createRecordingFile()
             
+            // Calculate dimensions based on orientation
+            var width = settings.videoQuality.width
+            var height = settings.videoQuality.height
+            
+            val (screenWidth, screenHeight) = screenCaptureManager.getScreenDimensions()
+            val isScreenPortrait = screenHeight > screenWidth
+            val isSettingPortrait = height > width
+            
+            // Swap if orientations don't match
+            if (isScreenPortrait && !isSettingPortrait) {
+                // Phone is in Portrait, but settings are Landscape -> Swap to Portrait
+                val temp = width
+                width = height
+                height = temp
+            } else if (!isScreenPortrait && isSettingPortrait) {
+                // Phone is in Landscape, but settings are Portrait -> Swap to Landscape
+                val temp = width
+                width = height
+                height = temp
+            }
+            
             // Initialize encoder
             val bitrate = settings.calculateBitrate()
             videoEncoder = VideoEncoder(
-                settings.videoQuality.width,
-                settings.videoQuality.height,
+                width,
+                height,
                 bitrate,
                 settings.frameRate.fps
             )
@@ -128,8 +156,8 @@ class RecorderService : Service() {
             // Create virtual display
             val virtualDisplay = screenCaptureManager.createVirtualDisplay(
                 surface,
-                settings.videoQuality.width,
-                settings.videoQuality.height,
+                width,
+                height,
                 screenCaptureManager.getScreenDensity()
             )
             
@@ -137,6 +165,31 @@ class RecorderService : Service() {
                 _recordingState.value = RecordingState.Error("Failed to create virtual display")
                 stopSelf()
                 return
+            }
+            
+            // Setup Audio Encoder & Recorder
+            var audioEnabled = false
+            if (settings.audioSource != AudioSource.NONE) {
+                audioEncoder = AudioEncoder() // Default settings
+                audioEncoder?.prepare()
+                
+                audioRecorder = AudioRecorder()
+                
+                // Determine source
+                val useMic = settings.audioSource == AudioSource.MICROPHONE || settings.audioSource == AudioSource.BOTH
+                
+                val success = audioRecorder?.start(
+                    screenCaptureManager.getMediaProjection(), 
+                    useMic
+                ) ?: false
+                
+                if (success) {
+                    audioEnabled = true
+                } else {
+                    Log.e(TAG, "Failed to start audio recorder")
+                    audioEncoder?.release()
+                    audioEncoder = null
+                }
             }
             
             // Initialize muxer
@@ -150,6 +203,12 @@ class RecorderService : Service() {
             
             recordingJob = serviceScope.launch {
                 recordingLoop()
+            }
+            
+            if (audioEnabled) {
+                audioJob = serviceScope.launch(Dispatchers.IO) {
+                    audioLoop()
+                }
             }
             
             Log.d(TAG, "Recording started")
@@ -212,6 +271,61 @@ class RecorderService : Service() {
         }
     }
     
+    private suspend fun audioLoop() {
+        var audioTrackAdded = false
+        val bufferSize = audioRecorder?.getBufferSize() ?: 4096
+        val audioBuffer = ByteArray(bufferSize)
+        
+        Log.d(TAG, "Starting audio loop")
+        
+        while (currentCoroutineContext().isActive && _recordingState.value is RecordingState.Recording) {
+            try {
+                // 1. Read Audio
+                val readResult = audioRecorder?.read(audioBuffer, bufferSize) ?: -1
+                
+                if (readResult > 0) {
+                    val timestampUs = (System.currentTimeMillis() - startTime - pausedDuration) * 1000
+                    
+                    // 2. Encode Audio
+                    audioEncoder?.encode(audioBuffer, readResult, timestampUs)
+                    
+                    // 3. Retrieve Encoded Data
+                    var outputAvailable = true
+                    while (outputAvailable) {
+                        val output = audioEncoder?.getEncodedData() ?: AudioEncoder.Output.TryAgain
+                        
+                        when (output) {
+                            is AudioEncoder.Output.Data -> {
+                                if (output.buffer != null && output.info.size > 0) {
+                                    if (audioTrackAdded) {
+                                        muxer?.writeAudioSample(output.buffer, output.info)
+                                    }
+                                }
+                                audioEncoder?.releaseOutputBuffer(output.index)
+                            }
+                            is AudioEncoder.Output.FormatChanged -> {
+                                val format = audioEncoder?.getOutputFormat()
+                                if (format != null && !audioTrackAdded) {
+                                    muxer?.addAudioTrack(format)
+                                    audioTrackAdded = true
+                                    Log.d(TAG, "Audio track added")
+                                }
+                            }
+                            is AudioEncoder.Output.TryAgain -> {
+                                outputAvailable = false
+                            }
+                        }
+                    }
+                } else {
+                    delay(5)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error in audio loop", e)
+                break
+            }
+        }
+    }
+    
     private fun pauseRecording() {
         val currentState = _recordingState.value
         if (currentState is RecordingState.Recording) {
@@ -244,9 +358,12 @@ class RecorderService : Service() {
     private fun stopRecording() {
         Log.d(TAG, "Stopping recording")
         
-        // Cancel recording job
+        // Cancel recording jobs
         recordingJob?.cancel()
         recordingJob = null
+        
+        audioJob?.cancel()
+        audioJob = null
         
         // Signal end of stream
         videoEncoder?.signalEndOfStream()
@@ -260,6 +377,12 @@ class RecorderService : Service() {
         
         videoEncoder?.release()
         videoEncoder = null
+        
+        audioRecorder?.stop()
+        audioRecorder = null
+        
+        audioEncoder?.release()
+        audioEncoder = null
         
         screenCaptureManager.stop()
         

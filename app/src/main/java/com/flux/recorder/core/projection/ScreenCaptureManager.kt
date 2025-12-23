@@ -115,6 +115,13 @@ class ScreenCaptureManager(private val context: Context) {
     }
     
     /**
+     * Get the underlying MediaProjection instance
+     */
+    fun getMediaProjection(): MediaProjection? {
+        return mediaProjection
+    }
+
+    /**
      * Check if projection is active
      */
     fun isActive(): Boolean {

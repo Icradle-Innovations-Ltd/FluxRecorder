@@ -22,7 +22,7 @@ class VideoEncoder(
     companion object {
         private const val TAG = "VideoEncoder"
         private const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC // H.264
-        private const val I_FRAME_INTERVAL = 1 // I-frame every 1 second
+        private const val I_FRAME_INTERVAL = 2 // I-frame every 2 seconds (Better for size)
         private const val TIMEOUT_US = 10000L // 10ms timeout
     }
     
@@ -38,6 +38,9 @@ class VideoEncoder(
                 setInteger(MediaFormat.KEY_BIT_RATE, bitrate)
                 setInteger(MediaFormat.KEY_FRAME_RATE, frameRate)
                 setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, I_FRAME_INTERVAL)
+                
+                // Enable VBR for efficiency
+                setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR)
                 
                 // Enable hardware acceleration
                 setInteger(MediaFormat.KEY_PROFILE, 

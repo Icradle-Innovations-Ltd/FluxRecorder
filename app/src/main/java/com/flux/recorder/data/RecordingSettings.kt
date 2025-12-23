@@ -50,9 +50,14 @@ data class RecordingSettings(
      * Calculate optimal bitrate based on resolution and frame rate
      * Formula: width * height * fps * motion_factor * 0.07
      */
+    /**
+     * Calculate optimal bitrate based on resolution and frame rate
+     * Formula: width * height * fps * motion_factor * 0.12 (Balanced Quality/Size)
+     */
     fun calculateBitrate(): Int {
         val pixels = videoQuality.width * videoQuality.height
         val motionFactor = 1.5f // Assume medium motion
-        return (pixels * frameRate.fps * motionFactor * 0.07).toInt()
+        val qualityFactor = 0.12f // Balanced for VBR (High Quality, smaller size)
+        return (pixels * frameRate.fps * motionFactor * qualityFactor).toInt()
     }
 }
