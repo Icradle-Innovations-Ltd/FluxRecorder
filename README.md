@@ -71,7 +71,7 @@ Flux Recorder uses a custom **"Electric Flux"** theme designed for clarity and b
 ### Installation
 1.  Clone the repo:
     ```bash
-    git clone [https://github.com/your-username/flux-recorder.git](https://github.com/your-username/flux-recorder.git)
+    git clone [https://github.com/Icradle-Innovations-Ltd/FluxRecorder.git](https://github.com/Icradle-Innovations-Ltd/FluxRecorder.git)
     ```
 2.  Open in Android Studio.
 3.  Sync Gradle.
