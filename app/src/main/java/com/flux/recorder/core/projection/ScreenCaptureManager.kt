@@ -27,6 +27,15 @@ class ScreenCaptureManager(private val context: Context) {
             return metrics
         }
     
+    private val projectionCallback = object : MediaProjection.Callback() {
+        override fun onStop() {
+            // Handle cleanup if projection stops unexpectedly
+            virtualDisplay?.release()
+            virtualDisplay = null
+            mediaProjection = null
+        }
+    }
+
     /**
      * Create intent for MediaProjection permission request
      */
@@ -48,6 +57,8 @@ class ScreenCaptureManager(private val context: Context) {
             as MediaProjectionManager
         
         mediaProjection = projectionManager.getMediaProjection(resultCode, data)
+        mediaProjection?.registerCallback(projectionCallback, null)
+        
         return mediaProjection != null
     }
     
@@ -98,6 +109,7 @@ class ScreenCaptureManager(private val context: Context) {
         virtualDisplay?.release()
         virtualDisplay = null
         
+        mediaProjection?.unregisterCallback(projectionCallback)
         mediaProjection?.stop()
         mediaProjection = null
     }
