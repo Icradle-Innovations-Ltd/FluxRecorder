@@ -135,7 +135,7 @@ class MainActivity : ComponentActivity() {
         try {
             val uri = FileProvider.getUriForFile(
                 this,
-                "${applicationId}.fileprovider",
+                "${packageName}.fileprovider",
                 file
             )
             
