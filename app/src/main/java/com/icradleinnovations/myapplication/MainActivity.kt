@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import com.flux.recorder.data.RecordingSettings
 import com.flux.recorder.data.RecordingState
@@ -60,6 +61,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             // Make recorderService observable
             var service by remember { mutableStateOf<RecorderService?>(null) }
+            val context = LocalContext.current
             
             // Update service when connection changes
             DisposableEffect(Unit) {
@@ -67,20 +69,19 @@ class MainActivity : ComponentActivity() {
                     override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
                         val serviceBinder = binder as RecorderService.RecorderBinder
                         service = serviceBinder.getService()
-                        serviceBound = true
                     }
                     
                     override fun onServiceDisconnected(name: ComponentName?) {
                         service = null
-                        serviceBound = false
                     }
                 }
                 
+                // Bind to service
+                val intent = Intent(context, RecorderService::class.java)
+                context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+                
                 onDispose {
-                    if (serviceBound) {
-                        unbindService(connection)
-                        serviceBound = false
-                    }
+                    context.unbindService(connection)
                 }
             }
             
@@ -118,7 +119,6 @@ class MainActivity : ComponentActivity() {
         }
         
         startService(intent)
-        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
     }
     
     private fun stopRecordingService() {
@@ -130,10 +130,6 @@ class MainActivity : ComponentActivity() {
     
     override fun onDestroy() {
         super.onDestroy()
-        if (serviceBound) {
-            unbindService(serviceConnection)
-            serviceBound = false
-        }
     }
 }
 

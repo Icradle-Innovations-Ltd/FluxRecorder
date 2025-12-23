@@ -63,12 +63,18 @@ class VideoEncoder(
         }
     }
     
+    sealed interface EncoderOutput {
+        data class Data(val buffer: ByteBuffer, val info: MediaCodec.BufferInfo, val index: Int) : EncoderOutput
+        object FormatChanged : EncoderOutput
+        object TryAgain : EncoderOutput
+    }
+
     /**
      * Get encoded data
-     * @return Pair of ByteBuffer and BufferInfo, or null if no data available
+     * @return EncoderOutput result
      */
-    fun getEncodedData(): Triple<ByteBuffer?, MediaCodec.BufferInfo, Int>? {
-        val codec = mediaCodec ?: return null
+    fun getEncodedData(): EncoderOutput {
+        val codec = mediaCodec ?: return EncoderOutput.TryAgain
         
         val bufferInfo = MediaCodec.BufferInfo()
         val outputBufferIndex = codec.dequeueOutputBuffer(bufferInfo, TIMEOUT_US)
@@ -76,13 +82,20 @@ class VideoEncoder(
         return when {
             outputBufferIndex >= 0 -> {
                 val outputBuffer = codec.getOutputBuffer(outputBufferIndex)
-                Triple(outputBuffer, bufferInfo, outputBufferIndex)
+                if (outputBuffer != null) {
+                    EncoderOutput.Data(outputBuffer, bufferInfo, outputBufferIndex)
+                } else {
+                    EncoderOutput.TryAgain
+                }
             }
             outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
                 Log.d(TAG, "Output format changed: ${codec.outputFormat}")
-                null
+                EncoderOutput.FormatChanged
             }
-            else -> null
+            outputBufferIndex == MediaCodec.INFO_TRY_AGAIN_LATER -> {
+                EncoderOutput.TryAgain
+            }
+            else -> EncoderOutput.TryAgain
         }
     }
     

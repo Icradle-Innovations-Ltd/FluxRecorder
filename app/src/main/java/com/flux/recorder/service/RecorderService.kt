@@ -167,28 +167,30 @@ class RecorderService : Service() {
         while (currentCoroutineContext().isActive && _recordingState.value is RecordingState.Recording) {
             try {
                 // Get encoded video data
-                val encodedData = videoEncoder?.getEncodedData()
+                val output = videoEncoder?.getEncodedData() ?: VideoEncoder.EncoderOutput.TryAgain
                 
-                if (encodedData != null) {
-                    val (buffer, bufferInfo, bufferIndex) = encodedData
-                    
-                    if (buffer != null && bufferInfo.size > 0) {
-                        // Add video track on first frame
-                        if (!videoTrackAdded && (bufferInfo.flags and android.media.MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-                            val format = videoEncoder?.getOutputFormat()
-                            if (format != null) {
-                                muxer?.addVideoTrack(format)
-                                videoTrackAdded = true
-                            }
+                when (output) {
+                    is VideoEncoder.EncoderOutput.FormatChanged -> {
+                        Log.d(TAG, "Encoder format changed")
+                        val format = videoEncoder?.getOutputFormat()
+                        if (format != null && !videoTrackAdded) {
+                            muxer?.addVideoTrack(format)
+                            videoTrackAdded = true
+                            Log.d(TAG, "Video track added to muxer")
                         }
+                    }
+                    is VideoEncoder.EncoderOutput.Data -> {
+                        val (buffer, bufferInfo, bufferIndex) = output
                         
-                        // Write video sample
                         if (videoTrackAdded && (bufferInfo.flags and android.media.MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0) {
                             muxer?.writeVideoSample(buffer, bufferInfo)
                         }
+                        
+                        videoEncoder?.releaseOutputBuffer(bufferIndex)
                     }
-                    
-                    videoEncoder?.releaseOutputBuffer(bufferIndex)
+                    is VideoEncoder.EncoderOutput.TryAgain -> {
+                        // No data available yet, just continue
+                    }
                 }
                 
                 // Update duration
