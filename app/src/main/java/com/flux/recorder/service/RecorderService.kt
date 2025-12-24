@@ -15,6 +15,7 @@ import com.flux.recorder.data.RecordingSettings
 import com.flux.recorder.data.RecordingState
 import com.flux.recorder.utils.FileManager
 import com.flux.recorder.utils.NotificationHelper
+import com.flux.recorder.utils.ShakeDetector
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,6 +43,7 @@ class RecorderService : Service() {
     private var outputFile: File? = null
     private var recordingJob: Job? = null
     private var audioJob: Job? = null
+    private var shakeDetector: ShakeDetector? = null
     
     private val _recordingState = MutableStateFlow<RecordingState>(RecordingState.Idle)
     val recordingState: StateFlow<RecordingState> = _recordingState.asStateFlow()
@@ -224,6 +226,19 @@ class RecorderService : Service() {
                 startService(facecamIntent)
             }
             
+            // Start shake detector if enabled
+            if (settings.enableShakeToStop) {
+                shakeDetector = ShakeDetector(
+                    context = this,
+                    sensitivity = settings.shakeSensitivity
+                ) {
+                    Log.d(TAG, "Shake detected - stopping recording")
+                    stopRecording()
+                }
+                shakeDetector?.start()
+                Log.d(TAG, "Shake-to-stop enabled with sensitivity: ${settings.shakeSensitivity}")
+            }
+            
         } catch (e: Exception) {
             Log.e(TAG, "Error starting recording", e)
             _recordingState.value = RecordingState.Error(e.message ?: "Unknown error")
@@ -401,8 +416,10 @@ class RecorderService : Service() {
         
         audioEncoder?.release()
         audioEncoder = null
-        
-        screenCaptureManager.stop()
+                // Stop shake detector
+        shakeDetector?.stop()
+        shakeDetector = null
+                screenCaptureManager.stop()
         
         // Make sure file is visible in gallery
         outputFile?.let { file ->
@@ -442,7 +459,6 @@ class RecorderService : Service() {
         }
         
         // Stop facecam if running
-        // TODO: Implement actual floating control stop logic properly
         val facecamIntent = Intent(this, FloatingControlService::class.java)
         stopService(facecamIntent)
         

@@ -18,6 +18,7 @@ import androidx.core.content.FileProvider
 import com.flux.recorder.data.RecordingSettings
 import com.flux.recorder.data.RecordingState
 import com.flux.recorder.service.RecorderService
+import com.flux.recorder.service.QuickTileService
 import com.flux.recorder.ui.screens.HomeScreen
 import com.flux.recorder.ui.screens.RecordingsScreen
 import com.flux.recorder.ui.screens.SettingsScreen
@@ -58,9 +59,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         
+        // Check if launched from Quick Settings Tile
+        val shouldStartRecording = intent?.action == QuickTileService.ACTION_TOGGLE_RECORDING
+        
         setContent {
             // Make recorderService observable
             var service by remember { mutableStateOf<RecorderService?>(null) }
+            var autoStartRecording by remember { mutableStateOf(shouldStartRecording) }
             val context = LocalContext.current
             
             // Update service when connection changes
@@ -99,14 +104,22 @@ class MainActivity : ComponentActivity() {
                         fileManager = fileManager,
                         onStartRecording = { resultCode, data, settings ->
                             startRecordingService(resultCode, data, settings)
+                            autoStartRecording = false
                         },
                         onStopRecording = {
                             stopRecordingService()
                         },
+                        onPauseRecording = {
+                            pauseRecordingService()
+                        },
+                        onResumeRecording = {
+                            resumeRecordingService()
+                        },
                         recordingState = recordingState,
                         onPlayRecording = { file ->
                             playRecording(file)
-                        }
+                        },
+                        autoStartRecording = autoStartRecording
                     )
                 }
             }
@@ -149,6 +162,41 @@ class MainActivity : ComponentActivity() {
         }
     }
     
+    private fun shareRecording(file: File) {
+        try {
+            val uri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                file
+            )
+            
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "video/mp4"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                putExtra(Intent.EXTRA_SUBJECT, "Screen Recording")
+                putExtra(Intent.EXTRA_TEXT, "Check out this screen recording from Flux Recorder")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(intent, "Share Recording"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+    
+    private fun pauseRecordingService() {
+        val intent = Intent(this, RecorderService::class.java).apply {
+            action = RecorderService.ACTION_PAUSE_RECORDING
+        }
+        startService(intent)
+    }
+    
+    private fun resumeRecordingService() {
+        val intent = Intent(this, RecorderService::class.java).apply {
+            action = RecorderService.ACTION_RESUME_RECORDING
+        }
+        startService(intent)
+    }
+    
     override fun onDestroy() {
         super.onDestroy()
     }
@@ -160,8 +208,11 @@ fun FluxRecorderApp(
     fileManager: FileManager,
     onStartRecording: (Int, Intent, RecordingSettings) -> Unit,
     onStopRecording: () -> Unit,
+    onPauseRecording: () -> Unit,
+    onResumeRecording: () -> Unit,
     recordingState: RecordingState,
-    onPlayRecording: (File) -> Unit
+    onPlayRecording: (File) -> Unit,
+    autoStartRecording: Boolean = false
 ) {
     var currentScreen by remember { mutableStateOf("home") }
     var settings by remember { mutableStateOf(preferencesManager.getRecordingSettings()) }
@@ -176,11 +227,14 @@ fun FluxRecorderApp(
                     onStartRecording(resultCode, data, settings)
                 },
                 onStopRecording = onStopRecording,
+                onPauseRecording = onPauseRecording,
+                onResumeRecording = onResumeRecording,
                 onNavigateToSettings = { currentScreen = "settings" },
                 onNavigateToRecordings = {
                     recordings = fileManager.getAllRecordings()
                     currentScreen = "recordings"
-                }
+                },
+                autoStartRecording = autoStartRecording
             )
         }
         "settings" -> {
@@ -202,7 +256,7 @@ fun FluxRecorderApp(
                     recordings = fileManager.getAllRecordings()
                 },
                 onShareRecording = { file ->
-                    // TODO: Implement share functionality
+                    shareRecording(file)
                 },
                 onPlayRecording = onPlayRecording
             )

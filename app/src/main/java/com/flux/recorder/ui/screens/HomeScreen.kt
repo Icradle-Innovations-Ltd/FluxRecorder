@@ -35,8 +35,11 @@ fun HomeScreen(
     settings: RecordingSettings,
     onStartRecording: (Int, Intent) -> Unit,
     onStopRecording: () -> Unit,
+    onPauseRecording: () -> Unit,
+    onResumeRecording: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNavigateToRecordings: () -> Unit
+    onNavigateToRecordings: () -> Unit,
+    autoStartRecording: Boolean = false
 ) {
     val context = LocalContext.current
     
@@ -67,6 +70,23 @@ fun HomeScreen(
     val multiplePermissionsState = rememberMultiplePermissionsState(
         permissions = requiredPermissions
     )
+    
+    // Auto-start recording if launched from Quick Tile
+    LaunchedEffect(autoStartRecording) {
+        if (autoStartRecording && recordingState is RecordingState.Idle) {
+            // Check permissions first
+            if (multiplePermissionsState.allPermissionsGranted) {
+                // Permissions granted, request MediaProjection
+                val intent = (context.getSystemService(android.content.Context.MEDIA_PROJECTION_SERVICE) 
+                    as android.media.projection.MediaProjectionManager)
+                    .createScreenCaptureIntent()
+                mediaProjectionLauncher.launch(intent)
+            } else {
+                // Request permissions first
+                multiplePermissionsState.launchMultiplePermissionRequest()
+            }
+        }
+    }
     
     // MediaProjection permission launcher
     val mediaProjectionLauncher = rememberLauncherForActivityResult(
@@ -199,6 +219,48 @@ fun HomeScreen(
                     }
                 }
             )
+            
+            // Pause/Resume buttons when recording
+            if (recordingState is RecordingState.Recording || recordingState is RecordingState.Paused) {
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Pause/Resume button
+                    Button(
+                        onClick = {
+                            if (recordingState is RecordingState.Recording) {
+                                onPauseRecording()
+                            } else {
+                                onResumeRecording()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = FluxCyan
+                        )
+                    ) {
+                        Text(
+                            text = if (recordingState is RecordingState.Recording) "Pause" else "Resume",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    
+                    // Stop button
+                    Button(
+                        onClick = onStopRecording,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = RecordingRed
+                        )
+                    ) {
+                        Text(
+                            text = "Stop",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
             
             Spacer(modifier = Modifier.height(48.dp))
             
