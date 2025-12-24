@@ -41,12 +41,9 @@ class VideoEncoder(
                 
                 // Enable VBR for efficiency
                 setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR)
-                
-                // Enable hardware acceleration
-                setInteger(MediaFormat.KEY_PROFILE, 
-                    MediaCodecInfo.CodecProfileLevel.AVCProfileHigh)
-                setInteger(MediaFormat.KEY_LEVEL, 
-                    MediaCodecInfo.CodecProfileLevel.AVCLevel42)
+
+                // Repeat previous frame if no new frame is available (prevents freezing on static screens)
+                setLong(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, 1000000L / frameRate)
             }
             
             // Create and configure encoder
