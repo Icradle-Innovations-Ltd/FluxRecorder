@@ -51,7 +51,7 @@
             android:name="com.flux.recorder.service.RecorderService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="mediaProjection" />
+            android:foregroundServiceType="mediaProjection|microphone" />
         
         <!-- Floating Control Service -->
         <service

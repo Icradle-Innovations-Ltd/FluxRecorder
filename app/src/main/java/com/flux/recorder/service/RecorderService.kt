@@ -107,7 +107,15 @@ class RecorderService : Service() {
                 "Recording",
                 "Screen recording in progress..."
             )
-            startForeground(NotificationHelper.NOTIFICATION_ID, notification)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                var foregroundServiceType = android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                     foregroundServiceType = foregroundServiceType or android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+                }
+                startForeground(NotificationHelper.NOTIFICATION_ID, notification, foregroundServiceType)
+            } else {
+                startForeground(NotificationHelper.NOTIFICATION_ID, notification)
+            }
             
             // Initialize MediaProjection
             if (!screenCaptureManager.initializeProjection(resultCode, data)) {
