@@ -191,9 +191,12 @@ class AudioRecorder {
                 0
             }
             
-            // Mix with 50% gain each to prevent clipping
-            // Average the two samples
-            val mixed = ((micSample.toInt() + internalSample.toInt()) / 2).toShort()
+            // Mix by addition with clamping to prevent overflow (preserves volume)
+            var mixedInt = micSample.toInt() + internalSample.toInt()
+            if (mixedInt > 32767) mixedInt = 32767
+            else if (mixedInt < -32768) mixedInt = -32768
+            
+            val mixed = mixedInt.toShort()
             
             // Write back to output buffer (little-endian)
             outputBuffer[i] = (mixed.toInt() and 0xFF).toByte()
