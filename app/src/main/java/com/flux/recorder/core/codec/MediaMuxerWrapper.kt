@@ -68,11 +68,20 @@ class MediaMuxerWrapper(private val outputFile: File) {
         return audioTrackIndex
     }
     
+    private var expectAudio = false
+
+    /**
+     * Set if audio track is expected
+     */
+    fun setAudioExpected(expected: Boolean) {
+        expectAudio = expected
+    }
+    
     /**
      * Start muxer when all tracks are added
      */
     private fun tryStartMuxer() {
-        if (!isMuxerStarted && videoFormatReceived) {
+        if (!isMuxerStarted && videoFormatReceived && (!expectAudio || audioFormatReceived)) {
             // Start muxer when video track is ready (audio is optional)
             mediaMuxer?.start()
             isMuxerStarted = true

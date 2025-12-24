@@ -202,6 +202,7 @@ class RecorderService : Service() {
             // Initialize muxer
             muxer = MediaMuxerWrapper(outputFile!!).apply {
                 prepare()
+                setAudioExpected(audioEnabled)
             }
             
             // Start recording loop
