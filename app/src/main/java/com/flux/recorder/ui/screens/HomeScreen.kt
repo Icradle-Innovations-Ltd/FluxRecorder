@@ -186,7 +186,7 @@ fun HomeScreen(
                         // Check if all permissions are granted
                         if (multiplePermissionsState.allPermissionsGranted) {
                             // All permissions granted, request MediaProjection
-                            val intent = (context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) 
+                            val intent = (context.getSystemService(android.content.Context.MEDIA_PROJECTION_SERVICE) 
                                 as android.media.projection.MediaProjectionManager)
                                 .createScreenCaptureIntent()
                             mediaProjectionLauncher.launch(intent)

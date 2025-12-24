@@ -19,6 +19,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlin.coroutines.coroutineContext
 import java.io.File
 
 /**
@@ -233,7 +234,7 @@ class RecorderService : Service() {
     private suspend fun recordingLoop() {
         var videoTrackAdded = false
         
-        while (currentCoroutineContext().isActive && _recordingState.value is RecordingState.Recording) {
+        while (coroutineContext.isActive && _recordingState.value is RecordingState.Recording) {
             try {
                 // Get encoded video data
                 val output = videoEncoder?.getEncodedData() ?: VideoEncoder.EncoderOutput.TryAgain
@@ -283,7 +284,7 @@ class RecorderService : Service() {
         
         Log.d(TAG, "🎤 Starting audio loop with buffer size: $bufferSize")
         
-        while (currentCoroutineContext().isActive && _recordingState.value is RecordingState.Recording) {
+        while (coroutineContext.isActive && _recordingState.value is RecordingState.Recording) {
             try {
                 // 1. Read Audio
                 val readResult = audioRecorder?.read(audioBuffer, bufferSize) ?: -1
