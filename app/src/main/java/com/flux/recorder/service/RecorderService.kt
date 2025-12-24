@@ -311,7 +311,7 @@ class RecorderService : Service() {
                         Log.d(TAG, "🎤 Audio read count: $readCount, bytes: $readResult")
                     }
                     
-                    val timestampUs = (System.currentTimeMillis() - startTime - pausedDuration) * 1000
+                    val timestampUs = System.nanoTime() / 1000
                     
                     // 2. Encode Audio
                     audioEncoder?.encode(audioBuffer, readResult, timestampUs)
