@@ -71,6 +71,15 @@ fun HomeScreen(
         permissions = requiredPermissions
     )
     
+    // MediaProjection permission launcher (must be declared before LaunchedEffect)
+    val mediaProjectionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            onStartRecording(result.resultCode, result.data!!)
+        }
+    }
+    
     // Auto-start recording if launched from Quick Tile
     LaunchedEffect(autoStartRecording) {
         if (autoStartRecording && recordingState is RecordingState.Idle) {
@@ -85,15 +94,6 @@ fun HomeScreen(
                 // Request permissions first
                 multiplePermissionsState.launchMultiplePermissionRequest()
             }
-        }
-    }
-    
-    // MediaProjection permission launcher
-    val mediaProjectionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-            onStartRecording(result.resultCode, result.data!!)
         }
     }
     

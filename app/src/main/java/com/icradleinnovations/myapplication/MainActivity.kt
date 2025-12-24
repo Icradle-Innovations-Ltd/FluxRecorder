@@ -119,6 +119,9 @@ class MainActivity : ComponentActivity() {
                         onPlayRecording = { file ->
                             playRecording(file)
                         },
+                        onShareRecording = { file ->
+                            shareRecording(file)
+                        },
                         autoStartRecording = autoStartRecording
                     )
                 }
@@ -212,6 +215,7 @@ fun FluxRecorderApp(
     onResumeRecording: () -> Unit,
     recordingState: RecordingState,
     onPlayRecording: (File) -> Unit,
+    onShareRecording: (File) -> Unit,
     autoStartRecording: Boolean = false
 ) {
     var currentScreen by remember { mutableStateOf("home") }
@@ -255,9 +259,7 @@ fun FluxRecorderApp(
                     fileManager.deleteRecording(file)
                     recordings = fileManager.getAllRecordings()
                 },
-                onShareRecording = { file ->
-                    shareRecording(file)
-                },
+                onShareRecording = onShareRecording,
                 onPlayRecording = onPlayRecording
             )
         }
