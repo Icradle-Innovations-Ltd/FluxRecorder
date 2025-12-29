@@ -98,8 +98,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📧 Contact
 
-- **Email:** support@fluxrecorder.com
-- **Website:** [fluxrecorder.com](https://fluxrecorder.com)
+- **Email:** icradleinnovations@gmail.com
+- **Website:** [icradleinnovations.com](https://icradle.io)
 - **Issues:** [GitHub Issues](https://github.com/Icradle-Innovations-Ltd/FluxRecorder/issues)
 
 ## 🙏 Acknowledgments
