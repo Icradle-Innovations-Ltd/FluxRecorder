@@ -2,7 +2,7 @@
 
 > **Capture the flow.** A native, high-performance Android screen recorder designed to feel like a premium system utility.
 
-![Kotlin](https://img.shields.io/badge/Kotlin-1.9.20-7F52FF.svg?logo=kotlin&logoColor=white) ![Platform](https://img.shields.io/badge/Platform-Android-3DDC84.svg?logo=android&logoColor=white) ![Min SDK](https://img.shields.io/badge/Min_SDK-24-green.svg) ![Target SDK](https://img.shields.io/badge/Target_SDK-34-orange.svg) ![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![Kotlin](https://img.shields.io/badge/Kotlin-1.9.20-7F52FF.svg?logo=kotlin&logoColor=white) ![Platform](https://img.shields.io/badge/Platform-Android-3DDC84.svg?logo=android&logoColor=white) ![Min SDK](https://img.shields.io/badge/Min_SDK-24-green.svg) ![Target SDK](https://img.shields.io/badge/Target_SDK-35-orange.svg) ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
 <p align="center">
   <img src="docs/screenshots/home_mockup.png" width="200" alt="Home Screen" />
@@ -17,18 +17,21 @@ Built entirely in **Native Kotlin** using **Jetpack Compose**, it utilizes the l
 
 ## ✨ Key Features
 
-### 🎮 Native Integration (Samsung-Style)
+### 🎮 Native Integration & UX
 * **Quick Settings Tile:** Launch the recorder immediately from your notification shade (`TileService`). No need to open the app drawer.
 * **Floating Control Bubble:** A non-intrusive, transparent overlay (`WindowManager`) that floats over games to Pause, Stop, or Draw.
 * **Shake-to-Stop:** Uses the accelerometer to end recording instantly without pulling down the status bar.
+* **Public Storage:** Recordings are saved directly to `Movies/FluxRecorder` for easy access by other apps (Gallery, Google Photos, etc.).
 
 ### ⚡ "Flux" Performance Engine
 * **Zero-Lag Encoding:** Hardware-accelerated H.264/AVC encoding.
-* **High Fidelity:** Supports **1080p, 2K (1440p), and 4K** at **60/90 FPS**.
-* **Smart Bitrate:** Auto-calculates optimal bitrate based on screen resolution.
+* **Smart Bitrate (VBR):** Automatically calculates optimal bitrate based on screen resolution and motion, balancing quality and file size.
+* **Smart Orientation:** Detects physical device rotation to record in true Portrait or Landscape mode.
+* **High Fidelity:** Supports **1080p, 2K, and 4K** at **60/90 FPS** (device dependent).
+* **Freeze Prevention:** Advanced frame handling ensures video doesn't freeze even during heavy load or when scrolling through dynamic content.
 
 ### 🎨 Creative & Audio
-* **Pro Audio Mixing:** Record **Internal Audio** (Android 10+) and **Microphone** simultaneously.
+* **Pro Audio Mixing:** Record **Internal Audio** (Android 10+) and **Microphone** simultaneously. The "Both" mode intelligently mixes system sounds with your voice commentary.
 * **Facecam (PiP):** Resizable, floating circle overlay using `CameraX`.
 * **Live Annotations:** "Draw on Screen" mode to highlight areas during tutorials.
 
@@ -55,6 +58,7 @@ Flux Recorder uses a custom **"Electric Flux"** theme designed for clarity and b
 | **UI** | Jetpack Compose | Material 3 declarative UI. |
 | **Architecture** | MVVM + Hilt | Clean architecture with Dependency Injection. |
 | **Video Core** | `MediaCodec` + `MediaMuxer` | Low-level access for max performance. |
+| **Player** | Media3 (ExoPlayer) | Robust in-app video playback. |
 | **Screen Capture** | `MediaProjection` | Standard Android projection API. |
 | **System** | `TileService` | For Quick Settings integration. |
 | **Overlay** | `SYSTEM_ALERT_WINDOW` | For drawing over other apps. |
@@ -64,14 +68,14 @@ Flux Recorder uses a custom **"Electric Flux"** theme designed for clarity and b
 ## 🚀 Getting Started
 
 ### Prerequisites
-* Android Studio (Iguana/Koala or newer)
+* Android Studio (Iguana/Koala or newer recommended)
 * JDK 17
 * Physical Android Device (Emulators cannot record screen effectively).
 
 ### Installation
 1.  Clone the repo:
     ```bash
-    git clone [https://github.com/Icradle-Innovations-Ltd/FluxRecorder.git](https://github.com/Icradle-Innovations-Ltd/FluxRecorder.git)
+    git clone https://github.com/Icradle-Innovations-Ltd/FluxRecorder.git
     ```
 2.  Open in Android Studio.
 3.  Sync Gradle.
@@ -100,3 +104,4 @@ com.flux.recorder
 │   ├── theme           # Electric Flux Color Palette
 │   └── screens         # Jetpack Compose Screens
 └── utils               # Permissions & File Management
+```
