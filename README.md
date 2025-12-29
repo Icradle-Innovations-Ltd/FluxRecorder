@@ -1,107 +1,113 @@
-# ⚡ Flux Recorder
+# Flux Recorder
 
-> **Capture the flow.** A native, high-performance Android screen recorder designed to feel like a premium system utility.
+<div align="center">
+  <img src="app/src/main/res/drawable/ic_splash_logo.png" alt="Flux Recorder Logo" width="120"/>
+  
+  ### Professional Screen Recording for Android
+  
+  [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Icradle-Innovations-Ltd/FluxRecorder/releases)
+  [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+  [![Platform](https://img.shields.io/badge/platform-Android-brightgreen.svg)](https://www.android.com)
+  [![Min SDK](https://img.shields.io/badge/minSdk-24-orange.svg)](https://developer.android.com/about/versions/nougat)
+</div>
 
-![Kotlin](https://img.shields.io/badge/Kotlin-1.9.20-7F52FF.svg?logo=kotlin&logoColor=white) ![Platform](https://img.shields.io/badge/Platform-Android-3DDC84.svg?logo=android&logoColor=white) ![Min SDK](https://img.shields.io/badge/Min_SDK-24-green.svg) ![Target SDK](https://img.shields.io/badge/Target_SDK-35-orange.svg) ![License](https://img.shields.io/badge/License-MIT-blue.svg)
+## 📱 About
 
-<p align="center">
-  <img src="docs/screenshots/home_mockup.png" width="200" alt="Home Screen" />
-  <img src="docs/screenshots/overlay_mockup.png" width="200" alt="Floating Controls" />
-  <img src="docs/screenshots/tile_mockup.png" width="200" alt="Quick Tile" />
-</p>
+Flux Recorder is a powerful, feature-rich screen recording application for Android that lets you capture your device's screen with exceptional quality and flexibility. Perfect for creating tutorials, recording gameplay, capturing video calls, or saving important moments.
 
-## 📖 About
-**Flux Recorder** is an open-source alternative to OEM system recorders (like Samsung's or Pixel's). It prioritizes **performance and integration** over gimmicks. 
+## ✨ Features
 
-Built entirely in **Native Kotlin** using **Jetpack Compose**, it utilizes the low-level `MediaCodec` API to ensure zero-lag recording during high-fidelity gaming. The UI features a distinct "Electric Flux" dark theme optimized for AMOLED screens.
+- **High-Quality Recording**
+  - Multiple resolution options: 1080p, 720p, 480p
+  - Customizable bitrate for optimal quality
+  - Variable Bitrate (VBR) encoding for efficient file sizes
 
-## ✨ Key Features
+- **Flexible Audio Capture**
+  - Internal audio (system sounds) - Android 10+
+  - Microphone input
+  - Both simultaneously
+  - Silent recording option
 
-### 🎮 Native Integration & UX
-* **Quick Settings Tile:** Launch the recorder immediately from your notification shade (`TileService`). No need to open the app drawer.
-* **Floating Control Bubble:** A non-intrusive, transparent overlay (`WindowManager`) that floats over games to Pause, Stop, or Draw.
-* **Shake-to-Stop:** Uses the accelerometer to end recording instantly without pulling down the status bar.
-* **Public Storage:** Recordings are saved directly to `Movies/FluxRecorder` for easy access by other apps (Gallery, Google Photos, etc.).
+- **User-Friendly Interface**
+  - Clean, modern Material Design 3 UI
+  - Intuitive recording controls
+  - Floating overlay for easy access
+  - Real-time recording status
 
-### ⚡ "Flux" Performance Engine
-* **Zero-Lag Encoding:** Hardware-accelerated H.264/AVC encoding.
-* **Smart Bitrate (VBR):** Automatically calculates optimal bitrate based on screen resolution and motion, balancing quality and file size.
-* **Smart Orientation:** Detects physical device rotation to record in true Portrait or Landscape mode.
-* **High Fidelity:** Supports **1080p, 2K, and 4K** at **60/90 FPS** (device dependent).
-* **Freeze Prevention:** Advanced frame handling ensures video doesn't freeze even during heavy load or when scrolling through dynamic content.
+- **Advanced Features**
+  - Optional facecam overlay
+  - Automatic file management
+  - Built-in recordings library
+  - Orientation-aware recording
+  - No watermarks
+  - Completely free
 
-### 🎨 Creative & Audio
-* **Pro Audio Mixing:** Record **Internal Audio** (Android 10+) and **Microphone** simultaneously. The "Both" mode intelligently mixes system sounds with your voice commentary.
-* **Facecam (PiP):** Resizable, floating circle overlay using `CameraX`.
-* **Live Annotations:** "Draw on Screen" mode to highlight areas during tutorials.
+- **Privacy-Focused**
+  - No data collection
+  - No analytics or tracking
+  - All recordings stored locally
+  - Full user control
+
+## 🚀 Download
+
+[<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80">](https://play.google.com/store/apps/details?id=com.flux.recorder)
+
+## 📸 Screenshots
+
+<div align="center">
+  <img src="screenshots/home.png" alt="Home Screen" width="200"/>
+  <img src="screenshots/recording.png" alt="Recording" width="200"/>
+  <img src="screenshots/settings.png" alt="Settings" width="200"/>
+  <img src="screenshots/library.png" alt="Library" width="200"/>
+</div>
+
+## 🛠️ Technical Details
+
+- **Built with:** Kotlin, Jetpack Compose
+- **Architecture:** MVVM with Clean Architecture
+- **Dependency Injection:** Hilt
+- **Media:** MediaCodec, MediaMuxer, MediaProjection
+- **Min SDK:** 24 (Android 7.0)
+- **Target SDK:** 35 (Android 15)
+
+## 📋 Permissions
+
+- **Camera:** For optional facecam feature during recording
+- **Record Audio:** To capture system audio and/or microphone input
+- **Storage Access:** To save recordings to device storage
+- **Foreground Service:** To maintain recording in background
+- **Post Notifications:** To display recording status
+
+## 🔒 Privacy
+
+We take your privacy seriously. Flux Recorder:
+- Does not collect any personal data
+- Does not use analytics or tracking
+- Does not share data with third parties
+- Stores all recordings locally on your device
+
+Read our full [Privacy Policy](PRIVACY_POLICY.md)
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📧 Contact
+
+- **Email:** support@fluxrecorder.com
+- **Website:** [fluxrecorder.com](https://fluxrecorder.com)
+- **Issues:** [GitHub Issues](https://github.com/Icradle-Innovations-Ltd/FluxRecorder/issues)
+
+## 🙏 Acknowledgments
+
+Built with ❤️ by Icradle Innovations Ltd
 
 ---
 
-## 🎨 UI & Design System
-
-Flux Recorder uses a custom **"Electric Flux"** theme designed for clarity and battery saving.
-
-| Element | Color | Hex | Usage |
-| :--- | :--- | :--- | :--- |
-| **Primary** | **Electric Violet** | `#6200EE` | Main Actions, Toggles |
-| **Secondary** | **Flux Cyan** | `#03DAC6` | Active States, Accents |
-| **Background** | **Void Black** | `#121212` | True Dark (AMOLED Save) |
-| **Overlay** | **Glass Black** | `#CC000000` | 80% Opacity Floating Bar |
-
----
-
-## 🛠 Tech Stack
-
-| Component | Technology | Reasoning |
-| :--- | :--- | :--- |
-| **Language** | Kotlin | Modern, null-safe native development. |
-| **UI** | Jetpack Compose | Material 3 declarative UI. |
-| **Architecture** | MVVM + Hilt | Clean architecture with Dependency Injection. |
-| **Video Core** | `MediaCodec` + `MediaMuxer` | Low-level access for max performance. |
-| **Player** | Media3 (ExoPlayer) | Robust in-app video playback. |
-| **Screen Capture** | `MediaProjection` | Standard Android projection API. |
-| **System** | `TileService` | For Quick Settings integration. |
-| **Overlay** | `SYSTEM_ALERT_WINDOW` | For drawing over other apps. |
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-* Android Studio (Iguana/Koala or newer recommended)
-* JDK 17
-* Physical Android Device (Emulators cannot record screen effectively).
-
-### Installation
-1.  Clone the repo:
-    ```bash
-    git clone https://github.com/Icradle-Innovations-Ltd/FluxRecorder.git
-    ```
-2.  Open in Android Studio.
-3.  Sync Gradle.
-4.  Run on device.
-
-### ⚠️ Android 14 Compatibility Note
-Google introduced strict rules for `MediaProjection` in Android 14 (API 34).
-1.  **Per-Session Consent:** The system permission dialog will appear **every time** you start a recording. This is mandatory OS behavior and cannot be bypassed.
-2.  **Foreground Service:** The app must declare `foregroundServiceType="mediaProjection"` in the Manifest.
-
----
-
-## 📂 Project Structure
-
-```text
-com.flux.recorder
-├── core
-│   ├── codec           # MediaCodec & MediaMuxer wrapper
-│   └── audio           # AudioRecord & Mixing logic
-├── di                  # Hilt Modules
-├── service             # The heavy lifters
-│   ├── RecorderService.kt        # Foreground Service keeping app alive
-│   ├── FloatingControlService.kt # The "Bubble" UI logic
-│   └── QuickTileService.kt       # Notification Shade integration
-├── ui
-│   ├── theme           # Electric Flux Color Palette
-│   └── screens         # Jetpack Compose Screens
-└── utils               # Permissions & File Management
-```
+<div align="center">
+  Made with Kotlin and Jetpack Compose
+</div>
