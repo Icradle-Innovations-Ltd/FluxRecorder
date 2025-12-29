@@ -75,7 +75,7 @@ You have complete control over your data:
 
 If you have questions about this Privacy Policy, please contact us at:
 
-**Email:** support@fluxrecorder.com
+**Email:** icradleinnovations@gmail.com
 
 ---
 

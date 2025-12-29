@@ -96,7 +96,7 @@ Capture your screen with exceptional quality and flexibility. Flux Recorder is t
 • Notifications: Show recording status
 
 🆘 SUPPORT
-Need help? Have suggestions? Contact us at support@fluxrecorder.com
+Need help? Have suggestions? Contact us at icradleinnovations@gmail.com
 
 Download Flux Recorder today and start creating professional screen recordings!
 
