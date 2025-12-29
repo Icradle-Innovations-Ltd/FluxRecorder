@@ -19,3 +19,6 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Suppress warnings for Netty's BlockHound integration (not needed for Android)
+-dontwarn reactor.blockhound.integration.BlockHoundIntegration
