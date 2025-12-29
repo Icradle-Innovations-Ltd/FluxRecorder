@@ -55,11 +55,11 @@ Flux Recorder is a powerful, feature-rich screen recording application for Andro
 ## 📸 Screenshots
 
 <div align="center">
-  <img src="screenshots/home.jpg" alt="Home Screen" width="200"/>
-  <img src="screenshots/recording.jpg" alt="Recording" width="200"/>
-  <img src="screenshots/settings1.jpg" alt="Settings1" width="200"/>
-  <img src="screenshots/settings2.jpg" alt="Settings2" width="200"/>
-  <img src="screenshots/library.jpg" alt="Library" width="200"/>
+  <img src="/app/src/screenshots/home.jpg" alt="Home Screen" width="200"/>
+  <img src="/app/src/screenshots/recording.jpg" alt="Recording" width="200"/>
+  <img src="/app/src/screenshots/settings1.jpg" alt="Settings1" width="200"/>
+  <img src="/app/src/screenshots/settings2.jpg" alt="Settings2" width="200"/>
+  <img src="/app/src/screenshots/library.jpg" alt="Library" width="200"/>
 </div>
 
 ## 🛠️ Technical Details
